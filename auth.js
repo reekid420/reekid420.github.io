@@ -163,7 +163,7 @@ loginForm.addEventListener('submit', async (e) => {
         // Store token and redirect to chat
         localStorage.setItem('chatToken', data.token);
         localStorage.setItem('chatUsername', data.username);
-        window.location.href = '/chat.html';
+        window.location.href = `${window.location.origin}/chat.html?token=${encodeURIComponent(data.token)}&username=${encodeURIComponent(data.username)}`;
     } catch (error) {
         console.error('Login error:', error);
         showError(error.message);
