@@ -1,5 +1,5 @@
 // Server configuration
-const SERVER_URL = 'https://reekid420.github.io'; // Change this to your deployed server URL when deploying
+const SERVER_URL = 'http://localhost:3000'; // Change this to your deployed server URL when deploying
 
 // Form elements
 const loginForm = document.getElementById('login-form');
