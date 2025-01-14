@@ -9,32 +9,47 @@ const forgotPasswordLink = document.getElementById('forgot-password');
 const backToLoginBtn = document.querySelector('.back-to-login');
 const tabBtns = document.querySelectorAll('.tab-btn');
 
-// Turnstile token storage
+// Store Turnstile tokens globally
 let loginToken = '';
 let registerToken = '';
 let resetToken = '';
 
-// Initialize Turnstile widgets
+// Initialize Turnstile widgets with explicit reset functions
 function initializeTurnstile() {
     window.turnstile.render('#login-turnstile', {
         sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
         callback: function(token) {
+            console.log('Login Turnstile completed');
             loginToken = token;
         },
+        'expired-callback': () => {
+            console.log('Login Turnstile expired');
+            loginToken = '';
+        }
     });
 
     window.turnstile.render('#register-turnstile', {
         sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
         callback: function(token) {
+            console.log('Register Turnstile completed');
             registerToken = token;
         },
+        'expired-callback': () => {
+            console.log('Register Turnstile expired');
+            registerToken = '';
+        }
     });
 
     window.turnstile.render('#reset-turnstile', {
         sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
         callback: function(token) {
+            console.log('Reset Turnstile completed');
             resetToken = token;
         },
+        'expired-callback': () => {
+            console.log('Reset Turnstile expired');
+            resetToken = '';
+        }
     });
 }
 
@@ -45,7 +60,7 @@ if (document.readyState === 'complete') {
     window.addEventListener('load', initializeTurnstile);
 }
 
-// Tab switching
+// Tab switching with Turnstile reset
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -57,8 +72,11 @@ tabBtns.forEach(btn => {
         const targetForm = btn.dataset.tab === 'login' ? loginForm : registerForm;
         targetForm.classList.remove('hidden');
         
-        // Reset all Turnstile widgets
+        // Reset all Turnstile widgets and tokens
         window.turnstile.reset();
+        loginToken = '';
+        registerToken = '';
+        resetToken = '';
     });
 });
 
@@ -76,7 +94,7 @@ backToLoginBtn.addEventListener('click', () => {
     window.turnstile.reset();
 });
 
-// Login form submission
+// Login form submission with improved error handling
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -89,6 +107,12 @@ loginForm.addEventListener('submit', async (e) => {
     }
 
     try {
+        console.log('Sending login request with data:', {
+            email,
+            turnstileToken: loginToken,
+            password: '***' // Hide password in logs
+        });
+
         const response = await fetch(`${SERVER_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 
@@ -98,6 +122,9 @@ loginForm.addEventListener('submit', async (e) => {
             credentials: 'include',
             body: JSON.stringify({ email, password, turnstileToken: loginToken })
         });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         // Log the raw response for debugging
         const responseText = await response.text();
@@ -122,10 +149,18 @@ loginForm.addEventListener('submit', async (e) => {
         window.location.href = '/chat.html';
     } catch (error) {
         console.error('Login error:', error);
+        console.error('Full error object:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         showError(error.message);
     } finally {
-        window.turnstile.reset();
-        loginToken = '';
+        // Only reset Turnstile if there was an error
+        if (!localStorage.getItem('chatToken')) {
+            window.turnstile.reset();
+            loginToken = '';
+        }
     }
 });
 
