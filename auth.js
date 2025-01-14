@@ -1,3 +1,6 @@
+// Server configuration
+const SERVER_URL = 'https://reekid420.github.io'; // Change this to your deployed server URL when deploying
+
 // Form elements
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -86,9 +89,13 @@ loginForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch(`${SERVER_URL}/api/auth/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
             body: JSON.stringify({ email, password, turnstileToken: loginToken })
         });
 
@@ -101,6 +108,7 @@ loginForm.addEventListener('submit', async (e) => {
             data = JSON.parse(responseText);
         } catch (parseError) {
             console.error('JSON Parse Error:', parseError);
+            console.error('Response text that failed to parse:', responseText);
             throw new Error('Server response was not valid JSON. Please try again.');
         }
         
@@ -148,7 +156,7 @@ registerForm.addEventListener('submit', async (e) => {
             password: '***' // Hide password in logs
         });
 
-        const response = await fetch('/api/auth/register', {
+        const response = await fetch(`${SERVER_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -212,9 +220,13 @@ resetForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        const response = await fetch('/api/auth/reset-password-request', {
+        const response = await fetch(`${SERVER_URL}/api/auth/reset-password-request`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
             body: JSON.stringify({ email, turnstileToken: resetToken })
         });
 
@@ -227,6 +239,7 @@ resetForm.addEventListener('submit', async (e) => {
             data = JSON.parse(responseText);
         } catch (parseError) {
             console.error('JSON Parse Error:', parseError);
+            console.error('Response text that failed to parse:', responseText);
             throw new Error('Server response was not valid JSON. Please try again.');
         }
         
@@ -266,7 +279,11 @@ function showSuccess(message) {
 // Check server availability
 async function checkServer() {
     try {
-        const response = await fetch('/api/health');
+        const response = await fetch(`${SERVER_URL}/api/health`, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
         if (response.ok) {
             console.log('Server is running and accessible');
         } else {
