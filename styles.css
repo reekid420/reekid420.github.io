@@ -278,13 +278,6 @@ body {
     background: #3498db;
 }
 
-/* reCAPTCHA container */
-.g-recaptcha {
-    margin: 10px 0;
-    display: flex;
-    justify-content: center;
-}
-
 /* Turnstile container */
 .cf-turnstile {
     margin: 10px 0;
