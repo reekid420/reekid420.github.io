@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat Room</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="chat-app">
+        <div class="sidebar">
+            <div class="room-info">
+                <h2>Live Chat Room</h2>
+                <div class="online-count">Online: <span id="online-count">0</span></div>
+            </div>
+            <div class="users-list">
+                <h3>Active Users</h3>
+                <ul id="users"></ul>
+            </div>
+        </div>
+        <div class="main-chat">
+            <div id="chat-messages"></div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type a message...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+    <script src="chat.js"></script>
+</body>
+</html> 

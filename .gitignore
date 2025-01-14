@@ -1,0 +1,8 @@
+.cursorcontext.json
+.cursorrules
+Focus.md
+node_modules
+chat.db
+package-lock.json
+package.json
+server.js
