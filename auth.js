@@ -136,7 +136,7 @@ loginForm.addEventListener('submit', async (e) => {
         } catch (parseError) {
             console.error('JSON Parse Error:', parseError);
             console.error('Response text that failed to parse:', responseText);
-            throw new Error('Server response was not valid JSON. Please try again.');
+            throw new Error('Cannot connect to server. Please try again later.');
         }
         
         if (!response.ok) {
@@ -173,11 +173,13 @@ registerForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('register-password').value;
     const confirmPassword = document.getElementById('register-confirm-password').value;
 
+    // Check passwords match first, without resetting Turnstile
     if (password !== confirmPassword) {
         showError('Passwords do not match');
         return;
     }
 
+    // Then check Turnstile
     if (!registerToken) {
         showError('Please complete the Turnstile challenge');
         return;
@@ -205,9 +207,6 @@ registerForm.addEventListener('submit', async (e) => {
                 turnstileToken: registerToken
             })
         });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         // Log the raw response for debugging
         const responseText = await response.text();
@@ -237,7 +236,7 @@ registerForm.addEventListener('submit', async (e) => {
             name: error.name
         });
         showError(error.message);
-    } finally {
+        // Only reset Turnstile on actual registration attempt failure
         window.turnstile.reset();
         registerToken = '';
     }
