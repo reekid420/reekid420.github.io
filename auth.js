@@ -61,7 +61,7 @@ loginForm.addEventListener('submit', async (e) => {
         // Store token and redirect to chat
         localStorage.setItem('chatToken', data.token);
         localStorage.setItem('chatUsername', data.username);
-        window.location.href = '/index.html';
+        window.location.href = '/chat.html';
     } catch (error) {
         showError(error.message);
     } finally {
@@ -162,4 +162,12 @@ function showSuccess(message) {
     successDiv.textContent = message;
     document.querySelector('.auth-container').prepend(successDiv);
     setTimeout(() => successDiv.remove(), 5000);
-} 
+}
+
+// Check if user is already logged in
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('chatToken');
+    if (token) {
+        window.location.href = '/chat.html';
+    }
+});
