@@ -11,18 +11,36 @@ let loginToken = '';
 let registerToken = '';
 let resetToken = '';
 
-// Turnstile callbacks
-window.loginTurnstileCallback = function(token) {
-    loginToken = token;
-};
+// Initialize Turnstile widgets
+function initializeTurnstile() {
+    window.turnstile.render('#login-turnstile', {
+        sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
+        callback: function(token) {
+            loginToken = token;
+        },
+    });
 
-window.registerTurnstileCallback = function(token) {
-    registerToken = token;
-};
+    window.turnstile.render('#register-turnstile', {
+        sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
+        callback: function(token) {
+            registerToken = token;
+        },
+    });
 
-window.resetTurnstileCallback = function(token) {
-    resetToken = token;
-};
+    window.turnstile.render('#reset-turnstile', {
+        sitekey: '0x4AAAAAAA5Rv_TPzkRnuzYs',
+        callback: function(token) {
+            resetToken = token;
+        },
+    });
+}
+
+// Initialize Turnstile when the script is loaded
+if (document.readyState === 'complete') {
+    initializeTurnstile();
+} else {
+    window.addEventListener('load', initializeTurnstile);
+}
 
 // Tab switching
 tabBtns.forEach(btn => {
@@ -37,7 +55,7 @@ tabBtns.forEach(btn => {
         targetForm.classList.remove('hidden');
         
         // Reset all Turnstile widgets
-        turnstile.reset();
+        window.turnstile.reset();
     });
 });
 
@@ -46,13 +64,13 @@ forgotPasswordLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.classList.add('hidden');
     resetForm.classList.remove('hidden');
-    turnstile.reset();
+    window.turnstile.reset();
 });
 
 backToLoginBtn.addEventListener('click', () => {
     resetForm.classList.add('hidden');
     loginForm.classList.remove('hidden');
-    turnstile.reset();
+    window.turnstile.reset();
 });
 
 // Login form submission
