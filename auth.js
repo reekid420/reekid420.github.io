@@ -6,6 +6,24 @@ const forgotPasswordLink = document.getElementById('forgot-password');
 const backToLoginBtn = document.querySelector('.back-to-login');
 const tabBtns = document.querySelectorAll('.tab-btn');
 
+// Turnstile token storage
+let loginToken = '';
+let registerToken = '';
+let resetToken = '';
+
+// Turnstile callbacks
+window.loginTurnstileCallback = function(token) {
+    loginToken = token;
+};
+
+window.registerTurnstileCallback = function(token) {
+    registerToken = token;
+};
+
+window.resetTurnstileCallback = function(token) {
+    resetToken = token;
+};
+
 // Tab switching
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -17,6 +35,9 @@ tabBtns.forEach(btn => {
         
         const targetForm = btn.dataset.tab === 'login' ? loginForm : registerForm;
         targetForm.classList.remove('hidden');
+        
+        // Reset all Turnstile widgets
+        turnstile.reset();
     });
 });
 
@@ -25,11 +46,13 @@ forgotPasswordLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.classList.add('hidden');
     resetForm.classList.remove('hidden');
+    turnstile.reset();
 });
 
 backToLoginBtn.addEventListener('click', () => {
     resetForm.classList.add('hidden');
     loginForm.classList.remove('hidden');
+    turnstile.reset();
 });
 
 // Login form submission
@@ -38,10 +61,9 @@ loginForm.addEventListener('submit', async (e) => {
     
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
-    const recaptchaToken = grecaptcha.getResponse();
 
-    if (!recaptchaToken) {
-        showError('Please complete the reCAPTCHA');
+    if (!loginToken) {
+        showError('Please complete the Turnstile challenge');
         return;
     }
 
@@ -49,7 +71,7 @@ loginForm.addEventListener('submit', async (e) => {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, recaptchaToken })
+            body: JSON.stringify({ email, password, turnstileToken: loginToken })
         });
 
         const data = await response.json();
@@ -65,7 +87,8 @@ loginForm.addEventListener('submit', async (e) => {
     } catch (error) {
         showError(error.message);
     } finally {
-        grecaptcha.reset();
+        turnstile.reset();
+        loginToken = '';
     }
 });
 
@@ -77,15 +100,14 @@ registerForm.addEventListener('submit', async (e) => {
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
     const confirmPassword = document.getElementById('register-confirm-password').value;
-    const recaptchaToken = grecaptcha.getResponse();
 
     if (password !== confirmPassword) {
         showError('Passwords do not match');
         return;
     }
 
-    if (!recaptchaToken) {
-        showError('Please complete the reCAPTCHA');
+    if (!registerToken) {
+        showError('Please complete the Turnstile challenge');
         return;
     }
 
@@ -93,7 +115,7 @@ registerForm.addEventListener('submit', async (e) => {
         const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password, recaptchaToken })
+            body: JSON.stringify({ username, email, password, turnstileToken: registerToken })
         });
 
         const data = await response.json();
@@ -108,7 +130,8 @@ registerForm.addEventListener('submit', async (e) => {
     } catch (error) {
         showError(error.message);
     } finally {
-        grecaptcha.reset();
+        turnstile.reset();
+        registerToken = '';
     }
 });
 
@@ -117,10 +140,9 @@ resetForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const email = document.getElementById('reset-email').value;
-    const recaptchaToken = grecaptcha.getResponse();
 
-    if (!recaptchaToken) {
-        showError('Please complete the reCAPTCHA');
+    if (!resetToken) {
+        showError('Please complete the Turnstile challenge');
         return;
     }
 
@@ -128,7 +150,7 @@ resetForm.addEventListener('submit', async (e) => {
         const response = await fetch('/api/auth/reset-password-request', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, recaptchaToken })
+            body: JSON.stringify({ email, turnstileToken: resetToken })
         });
 
         const data = await response.json();
@@ -143,7 +165,8 @@ resetForm.addEventListener('submit', async (e) => {
     } catch (error) {
         showError(error.message);
     } finally {
-        grecaptcha.reset();
+        turnstile.reset();
+        resetToken = '';
     }
 });
 

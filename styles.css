@@ -283,4 +283,11 @@ body {
     margin: 10px 0;
     display: flex;
     justify-content: center;
+}
+
+/* Turnstile container */
+.cf-turnstile {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
 } 
