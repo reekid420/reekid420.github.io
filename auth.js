@@ -141,11 +141,30 @@ registerForm.addEventListener('submit', async (e) => {
     }
 
     try {
+        console.log('Sending registration request with data:', {
+            username,
+            email,
+            turnstileToken: registerToken,
+            password: '***' // Hide password in logs
+        });
+
         const response = await fetch('/api/auth/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password, turnstileToken: registerToken })
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                username,
+                email,
+                password,
+                turnstileToken: registerToken
+            })
         });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         // Log the raw response for debugging
         const responseText = await response.text();
@@ -156,6 +175,7 @@ registerForm.addEventListener('submit', async (e) => {
             data = JSON.parse(responseText);
         } catch (parseError) {
             console.error('JSON Parse Error:', parseError);
+            console.error('Response text that failed to parse:', responseText);
             throw new Error('Server response was not valid JSON. Please try again.');
         }
         
@@ -168,6 +188,11 @@ registerForm.addEventListener('submit', async (e) => {
         tabBtns[0].click();
     } catch (error) {
         console.error('Registration error:', error);
+        console.error('Full error object:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         showError(error.message);
     } finally {
         window.turnstile.reset();
@@ -238,10 +263,31 @@ function showSuccess(message) {
     setTimeout(() => successDiv.remove(), 5000);
 }
 
-// Check if user is already logged in
-document.addEventListener('DOMContentLoaded', () => {
+// Check server availability
+async function checkServer() {
+    try {
+        const response = await fetch('/api/health');
+        if (response.ok) {
+            console.log('Server is running and accessible');
+        } else {
+            console.error('Server returned error:', response.status);
+            showError('Server is not responding properly. Please try again later.');
+        }
+    } catch (error) {
+        console.error('Server connection error:', error);
+        showError('Cannot connect to server. Please check your connection.');
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if user is already logged in
     const token = localStorage.getItem('chatToken');
     if (token) {
         window.location.href = '/chat.html';
+        return;
     }
+
+    // Check server availability
+    await checkServer();
 });
