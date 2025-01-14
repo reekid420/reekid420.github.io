@@ -92,7 +92,17 @@ loginForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({ email, password, turnstileToken: loginToken })
         });
 
-        const data = await response.json();
+        // Log the raw response for debugging
+        const responseText = await response.text();
+        console.log('Raw server response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            throw new Error('Server response was not valid JSON. Please try again.');
+        }
         
         if (!response.ok) {
             throw new Error(data.error || 'Login failed');
@@ -103,9 +113,10 @@ loginForm.addEventListener('submit', async (e) => {
         localStorage.setItem('chatUsername', data.username);
         window.location.href = '/chat.html';
     } catch (error) {
+        console.error('Login error:', error);
         showError(error.message);
     } finally {
-        turnstile.reset();
+        window.turnstile.reset();
         loginToken = '';
     }
 });
@@ -136,7 +147,17 @@ registerForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({ username, email, password, turnstileToken: registerToken })
         });
 
-        const data = await response.json();
+        // Log the raw response for debugging
+        const responseText = await response.text();
+        console.log('Raw server response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            throw new Error('Server response was not valid JSON. Please try again.');
+        }
         
         if (!response.ok) {
             throw new Error(data.error || 'Registration failed');
@@ -146,9 +167,10 @@ registerForm.addEventListener('submit', async (e) => {
         // Switch to login form
         tabBtns[0].click();
     } catch (error) {
+        console.error('Registration error:', error);
         showError(error.message);
     } finally {
-        turnstile.reset();
+        window.turnstile.reset();
         registerToken = '';
     }
 });
@@ -171,7 +193,17 @@ resetForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({ email, turnstileToken: resetToken })
         });
 
-        const data = await response.json();
+        // Log the raw response for debugging
+        const responseText = await response.text();
+        console.log('Raw server response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            throw new Error('Server response was not valid JSON. Please try again.');
+        }
         
         if (!response.ok) {
             throw new Error(data.error || 'Password reset request failed');
@@ -181,9 +213,10 @@ resetForm.addEventListener('submit', async (e) => {
         // Switch back to login form
         backToLoginBtn.click();
     } catch (error) {
+        console.error('Password reset error:', error);
         showError(error.message);
     } finally {
-        turnstile.reset();
+        window.turnstile.reset();
         resetToken = '';
     }
 });
