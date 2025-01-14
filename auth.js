@@ -1,5 +1,29 @@
 // Server configuration
-const SERVER_URL = 'http://localhost:3000'; // Change this to your deployed server URL when deploying
+const SERVER_URL = 'http://localhost:3000'; // Your actual server URL where the Node.js backend is running
+
+// Add CORS headers to all fetch requests
+const fetchWithCORS = async (url, options = {}) => {
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...options.headers
+        },
+        credentials: 'include',
+        mode: 'cors'
+    });
+
+    // Log response details for debugging
+    console.log(`${options.method || 'GET'} ${url} - Status:`, response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+    return response;
+};
 
 // Form elements
 const loginForm = document.getElementById('login-form');
@@ -107,24 +131,16 @@ loginForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        console.log('Sending login request with data:', {
-            email,
-            turnstileToken: loginToken,
-            password: '***' // Hide password in logs
-        });
-
-        const response = await fetch(`${SERVER_URL}/api/auth/login`, {
+        console.log('Attempting login for:', email);
+        
+        const response = await fetchWithCORS(`${SERVER_URL}/api/auth/login`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ email, password, turnstileToken: loginToken })
+            body: JSON.stringify({ 
+                email, 
+                password, 
+                turnstileToken: loginToken 
+            })
         });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         // Log the raw response for debugging
         const responseText = await response.text();
@@ -136,10 +152,11 @@ loginForm.addEventListener('submit', async (e) => {
         } catch (parseError) {
             console.error('JSON Parse Error:', parseError);
             console.error('Response text that failed to parse:', responseText);
-            throw new Error('Cannot connect to server. Please try again later.');
+            throw new Error('Server connection error. Please try again later.');
         }
         
         if (!response.ok) {
+            console.error('Login failed:', data.error);
             throw new Error(data.error || 'Login failed');
         }
 
@@ -149,11 +166,6 @@ loginForm.addEventListener('submit', async (e) => {
         window.location.href = '/chat.html';
     } catch (error) {
         console.error('Login error:', error);
-        console.error('Full error object:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
         showError(error.message);
     } finally {
         // Only reset Turnstile if there was an error
