@@ -122,7 +122,7 @@ backToLoginBtn.addEventListener('click', () => {
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const email = document.getElementById('login-email').value;
+    const email = document.getElementById('login-email').value.toLowerCase().trim();
     const password = document.getElementById('login-password').value;
 
     if (!loginToken) {
